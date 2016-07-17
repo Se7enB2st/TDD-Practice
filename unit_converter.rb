@@ -6,20 +6,22 @@ require 'rspec/autorun'
 
 DimensionMissmatchError = Class.new(StandardError)
 
+Quantity = Struct.new(:amount, :unit) #Struct = Ruby class take number of arguments and provide getter and setter
+
 class UnitConverter
-  def initialize(initial_amount, initial_unit, target_unit)
-    @initial_amount = initial_amount
-    @initial_unit = initial_unit
+  def initialize(initial_quantity, target_unit)
+    @initial_quantity = initial_quantity
     @target_unit = target_unit
   end
 
   def convert
-    @initial_amount * conversion_factor(from: @initial_unit, to: @target_unit)
+    Quantity.new(@initial_quantity.amount * conversion_factor(from: @initial_quantity.unit, to: @target_unit), @target_unit)
   end
 end
 
 private
 
+#NO need to test private method, cuz user can't call it
 CONVERSION_FACTOR = {
   cup: {
     liter: 0.236588
@@ -36,17 +38,21 @@ end
 describe "UnitConverter" do
   describe "#convert" do
     it "translates between objects of same dismension" do
-      converter = UnitConverter.new(5, :cup, :liter)
+      cups = Quantity.new(5, :cup)
+      converter = UnitConverter.new(cups, :liter)
 
-      expect(converter.convert).to be_within(0.001).of(1.183)
+      result = converter.convert
+
+      expect(result.amount).to be_within(0.001).of(1.183)
+      expect(result.unit).to eq(:liter)
     end
 
     it "raises an error if the two units are of different dimensions" do
-      converter = UnitConverter.new(5, :cup, :gram)
+      cups = Quantity.new(5, :cup)
+      converter = UnitConverter.new(cups, :gram)
 
       # pass in a { block }to raise an error
       expect { converter.convert }.to raise_error(DimensionMissmatchError)
     end
   end
-
 end
