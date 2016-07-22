@@ -1,1 +1,1 @@
-Practice TDD
+Solving algorithm problems and creating simple programs using TDD.
